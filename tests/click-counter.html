@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROB RUN AutoClicker - Click Counter</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #2ea043;
+    --accent-bright: #3fb950;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text);
+    background:
+      radial-gradient(circle at 15% 0%, rgba(46, 160, 67, 0.16), transparent 38%),
+      radial-gradient(circle at 85% 100%, rgba(56, 139, 253, 0.10), transparent 40%),
+      var(--bg);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    user-select: none;
+  }
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 28px 48px;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: clamp(26px, 4vw, 42px);
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    margin: 0 0 30px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), transparent), var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.22);
+  }
+  .label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .value {
+    display: block;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: clamp(44px, 8vw, 78px);
+    line-height: 1;
+    color: var(--accent-bright);
+    text-shadow: 0 0 28px rgba(63, 185, 80, 0.24);
+    overflow-wrap: anywhere;
+  }
+  #cps { color: #58a6ff; text-shadow: 0 0 28px rgba(88, 166, 255, 0.24); }
+  .click-area {
+    display: flex;
+    min-height: 210px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 28px;
+    border: 2px dashed #3d444d;
+    border-radius: 18px;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 26px 26px;
+    color: #c9d1d9;
+    font-size: 19px;
+    line-height: 1.6;
+  }
+  .click-area strong { color: var(--accent-bright); }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  button {
+    border: 1px solid #2ea04366;
+    border-radius: 10px;
+    padding: 12px 22px;
+    background: #238636;
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover { background: #2ea043; }
+  button:active { transform: translateY(1px); }
+  .hint {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  kbd {
+    padding: 2px 7px;
+    border: 1px solid #484f58;
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    background: #21262d;
+    color: var(--text);
+    font-family: Consolas, monospace;
+    font-size: 13px;
+  }
+  .note {
+    margin: 26px 0 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: #21262d;
+    color: #d2a8ff;
+    font-family: Consolas, monospace;
+  }
+  @media (max-width: 640px) {
+    main { padding: 26px 18px 36px; }
+    .stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>ROB RUN AutoClicker &mdash; test contor</h1>
+  <p class="subtitle">
+    Pagina numără evenimentele <code>mousedown</code> pentru butonul stâng.
+    Folosește-o împreună cu <code>only_in_game=false</code> pentru a verifica rata de click-uri.
+  </p>
+
+  <section class="stats" aria-live="polite">
+    <div class="card">
+      <span class="label">Total apăsări stânga</span>
+      <span class="value" id="total">0</span>
+    </div>
+    <div class="card">
+      <span class="label">Click-uri / secundă (2 s)</span>
+      <span class="value" id="cps">0.0</span>
+    </div>
+  </section>
+
+  <div class="click-area" id="clickArea">
+    <div>
+      Ține <strong>Ctrl</strong> apăsat, apoi ține apăsat <strong>butonul stâng al mouse-ului</strong> aici.<br>
+      Cu valorile implicite (25 ms &plusmn; 5 ms) ar trebui să vezi aproximativ <strong>40 click-uri/s</strong>.
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="reset" type="button">Resetează contorul</button>
+    <span class="hint">Poți reseta și cu <kbd>F2</kbd>, fără să apeși butonul mouse-ului.</span>
+  </div>
+
+  <p class="note">
+    Pentru testul cu <code>only_in_game=true</code>: focalizează această pagină, apasă Ctrl+LMB
+    (click-ul fizic este numărat), apoi apasă <kbd>F2</kbd> cât timp ții Ctrl+LMB apăsat.
+    Dacă auto-clicker-ul respectă modul „doar în joc”, contorul rămâne la 0.
+    Nu folosi această pagină în timpul jocului; este doar un instrument local de test.
+  </p>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const totalEl = document.getElementById("total");
+  const cpsEl = document.getElementById("cps");
+  const resetButton = document.getElementById("reset");
+  const clickArea = document.getElementById("clickArea");
+
+  let total = 0;
+  let timestamps = [];
+  const CPS_WINDOW_MS = 2000;
+
+  function renderTotal() {
+    totalEl.textContent = total.toLocaleString("ro-RO");
+  }
+
+  function reset() {
+    total = 0;
+    timestamps = [];
+    renderTotal();
+    cpsEl.textContent = "0.0";
+  }
+
+  window.addEventListener("mousedown", (event) => {
+    if (event.button !== 0) return;
+    total += 1;
+    timestamps.push(performance.now());
+    renderTotal();
+    if (clickArea) {
+      clickArea.style.borderColor = "rgba(63, 185, 80, 0.75)";
+      setTimeout(() => { clickArea.style.borderColor = ""; }, 70);
+    }
+  }, true);
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "F2") {
+      event.preventDefault();
+      reset();
+    }
+  });
+
+  resetButton.addEventListener("click", reset);
+
+  setInterval(() => {
+    const now = performance.now();
+    while (timestamps.length > 0 && now - timestamps[0] > CPS_WINDOW_MS) {
+      timestamps.shift();
+    }
+    cpsEl.textContent = (timestamps.length / (CPS_WINDOW_MS / 1000)).toFixed(1);
+  }, 100);
+
+  renderTotal();
+})();
+</script>
+</body>
+</html>

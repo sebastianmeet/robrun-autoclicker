@@ -1,0 +1,9 @@
+{
+  "interval_ms": 25,
+  "jitter_ms": 5,
+  "only_in_game": true,
+  "exit_hotkey": "Ctrl+Alt+F8",
+  "trigger_mode": "intercept",
+  "game_process": "ROB RUN.exe",
+  "debug_log": false
+}
